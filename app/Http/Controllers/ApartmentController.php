@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Apartment;
+use Illuminate\Support\Facades\Auth;
+
+
 class ApartmentController extends Controller
 {
     public function index()
@@ -65,7 +68,7 @@ public function store(Request $request)
             'title'       => $request->title,
             'description' => $request->description,
             'price'       => $request->price,
-            'owner_id'    => auth()->id(),
+            'owner_id'    => Auth::id(),
         ]);
 
         return response()->json($apartment, 201);
