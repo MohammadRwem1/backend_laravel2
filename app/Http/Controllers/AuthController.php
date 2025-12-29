@@ -33,6 +33,7 @@ class AuthController extends Controller
         $data['profile_image']=$profileImagePath;
         $data['password']=Hash::make($data['password']);
         $data['role']=$role;
+        $data['status']='pending';
 
         $user=User::create($data);
 
@@ -53,6 +54,13 @@ class AuthController extends Controller
         if(!$user || !Hash::check($request->password, $user->password)){
             return response()->json(['message'=>'Invalid phone or password'], 401);
         }
+
+        if ($user->status !== 'approved') {
+            return response()->json([
+            'message' => 'Account not approved yet'
+        ], 403);
+    }
+
 
         $token=$user->createToken('api_token')->plainTextToken;
         return response()->json(['message'=>'Logged in successfully',
