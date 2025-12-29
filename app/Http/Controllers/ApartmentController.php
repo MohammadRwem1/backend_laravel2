@@ -11,6 +11,24 @@ class ApartmentController extends Controller
 {
     public function index()
 {
+    if($request->filled('governorate')){
+        $query->where('governorate',$request->governorate);
+    }
+    if ($request->filled('city')) {
+        $query->where('city', $request->city);
+    }
+        if ($request->filled('min_price')) {
+        $query->where('price', '>=', $request->min_price);
+    }
+
+    if ($request->filled('max_price')) {
+        $query->where('price', '<=', $request->max_price);
+    }
+        if ($request->filled('number_rooms')) {
+        $query->where('number_rooms', $request->number_rooms);
+    }
+
+
     $apartments = Apartment::select(
         'id',
         'title',
