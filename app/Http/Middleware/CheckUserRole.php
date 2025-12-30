@@ -17,9 +17,14 @@ class CheckUserRole
      */
     public function handle(Request $request, Closure $next)
     {
-        if(Auth::user()->role =='owner')
-        return $next($request);
+        if (!Auth::check()) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
 
-        return response()->json(['message=Unuthorized'], 403);
+    if (Auth::user()->role === 'owner') {
+        return $next($request);
+    }
+
+    return response()->json(['message' => 'Unauthorized'], 403);
     }
 }

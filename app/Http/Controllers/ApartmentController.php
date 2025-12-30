@@ -74,30 +74,31 @@ public function show($id)
     ]);
 }
 
-public function store(Request $request)
-    {
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'governorate' => 'required|string',
-            'city'        => 'required|string',
-            'number_rooms'=> 'required|numeric|between:1,5',
-            'description' => 'nullable|string',
-            'price'       => 'required|numeric|min:0',
-            'main_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'images.*'     => 'nullable|array|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+    public function store(Request $request)
+        {
+            $request->validate([
+                'title'       => 'required|string|max:255',
+                'governorate' => 'required|string',
+                'city'        => 'required|string',
+                'number_rooms'=> 'required|numeric|between:1,5',
+                'description' => 'nullable|string',
+                'price'       => 'required|numeric|min:0',
+                'main_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'images'   => 'nullable|array',
+                'images.*'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            ]);
 
-        $apartment = Apartment::create([
-    'title'         => $request->title,
-    'description'   => $request->description,
-    'price'         => $request->price,
-    'governorate'   => $request->governorate,
-    'city'          => $request->city,
-    'number_rooms'  => $request->number_rooms,
-    'owner_id'      => Auth::id(),
-    ]);
-        return response()->json($apartment, 201);
-    }
+            $apartment = Apartment::create([
+        'title'         => $request->title,
+        'description'   => $request->description,
+        'price'         => $request->price,
+        'governorate'   => $request->governorate,
+        'city'          => $request->city,
+        'number_rooms'  => $request->number_rooms,
+        'owner_id'      => Auth::id(),
+        ]);
+            return response()->json($apartment, 201);
+        }
 
     public function update(Request $request, Apartment $apartment)
     {
