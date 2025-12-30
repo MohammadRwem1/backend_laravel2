@@ -84,16 +84,18 @@ public function store(Request $request)
             'description' => 'nullable|string',
             'price'       => 'required|numeric|min:0',
             'main_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'images.*'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'images.*'     => 'nullable|array|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         $apartment = Apartment::create([
-            'title'       => $request->title,
-            'description' => $request->description,
-            'price'       => $request->price,
-            'owner_id'    => Auth::id(),
-        ]);
-
+    'title'         => $request->title,
+    'description'   => $request->description,
+    'price'         => $request->price,
+    'governorate'   => $request->governorate,
+    'city'          => $request->city,
+    'number_rooms'  => $request->number_rooms,
+    'owner_id'      => Auth::id(),
+    ]);
         return response()->json($apartment, 201);
     }
 
