@@ -60,7 +60,7 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::with('apartment')
-            ->where('tenant_id', $user->id)
+            ->where('renter_id', $user->id)
             ->orderByDesc('start_date')
             ->get();
 
