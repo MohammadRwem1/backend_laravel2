@@ -31,8 +31,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     Route::middleware(['checkUser'])->group(function () {
         Route::post('/apartments',[ApartmentController::class,'store']);
-        Route::put('/apartments/{id}',[ApartmentController::class,'update']);
-        Route::delete('/apartments/{id}',[ApartmentController::class,'destroy']);
+        Route::put('/apartments/{apartment}',[ApartmentController::class,'update']);
+        Route::delete('/apartments/{apartment}',[ApartmentController::class,'destroy']);
     });    
 });
 
