@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Apartment;
 use Illuminate\Http\Request;
+use App\Notifications\BookingStatusNotification;
 
 class BookingController extends Controller
 {
@@ -129,6 +130,16 @@ class BookingController extends Controller
             ->where('end_date', '>=', $start);
         })
         ->update(['status' => 'rejected']);
+        $booking->update(['status' => 'approved']);
+
+        $renter = $booking->renter;
+
+        $renter->notify(
+        new BookingStatusNotification(
+        $booking,
+        'Your booking has been approved'
+            )
+        );
 
     return response()->json($booking);
     }
@@ -175,6 +186,15 @@ class BookingController extends Controller
         }
 
         $booking->update(['status' => 'cancelled']);
+
+        $owner = $booking->apartment->owner;
+
+        $owner->notify(
+        new BookingStatusNotification(
+        $booking,
+        'The renter cancelled the booking'
+    )
+);
 
         return response()->json([
             'message' => 'Booking cancelled successfully.',

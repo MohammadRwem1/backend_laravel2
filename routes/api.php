@@ -54,3 +54,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
 });
+
+Route::middleware('auth:sanctum')->post('/fcm-token', function (Request $request) {
+    $request->validate([
+        'fcm_token' => 'required|string'
+    ]);
+
+    $request->user()->update([
+        'fcm_token' => $request->fcm_token
+    ]);
+
+    return response()->json(['message' => 'Token saved']);
+});
+
+Route::middleware('auth:sanctum')->get('/notifications', function (Request $request) {
+    return response()->json(
+        $request->user()->notifications
+    );
+});
