@@ -40,6 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/apartments/{apartment_id}/bookings', [BookingController::class, 'store']);
 
+    Route::put('/bookings/{id}', [BookingController::class, 'updateBooking']);
+
+    Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+
     Route::get('/my-bookings', [BookingController::class, 'myBookings']);
 
     Route::post('/bookings/{id}/review', [BookingController::class, 'addReview']);
