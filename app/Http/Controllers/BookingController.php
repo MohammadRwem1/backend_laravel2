@@ -161,6 +161,15 @@ class BookingController extends Controller
 
         $booking->update(['status' => 'rejected']);
 
+        $renter = $booking->renter;
+
+        $renter->notify(
+        new BookingStatusNotification(
+        $booking,
+        'Your booking has been rejected'
+            )
+        );
+
         return response()->json([
             'message' => 'Booking rejected.',
             'data' => $booking

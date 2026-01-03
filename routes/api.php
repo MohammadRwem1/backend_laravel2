@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{id}/approve', [BookingController::class, 'approve']);
 
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
 });
 
 Route::middleware('auth:sanctum')->post('/fcm-token', function (Request $request) {
