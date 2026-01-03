@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('renter_id')->constrained('users')->cascadeOnDelete();
             $table->tinyInteger('rating'); // 1–5
             $table->text('review')->nullable();
-            $table->timestamps();
             $table->unique('booking_id');
             $table->timestamps();
 
