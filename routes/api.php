@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ApartmentController;
 use App\Http\Controllers\BookingController;
-
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReviewController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/my-bookings', [BookingController::class, 'myBookings']);
 
-    Route::post('/bookings/{id}/review', [BookingController::class, 'addReview']);
+    Route::post('/bookings/{id}/review', [ReviewController::class, 'addReview']);
 
     Route::get('/owner/bookings/pending', [BookingController::class, 'ownerPending']);
 
