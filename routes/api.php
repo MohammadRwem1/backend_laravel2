@@ -70,8 +70,4 @@ Route::middleware('auth:sanctum')->post('/fcm-token', function (Request $request
     return response()->json(['message' => 'Token saved']);
 });
 
-Route::middleware('auth:sanctum')->get('/notifications', function (Request $request) {
-    return response()->json(
-        $request->user()->notifications
-    );
-});
+
