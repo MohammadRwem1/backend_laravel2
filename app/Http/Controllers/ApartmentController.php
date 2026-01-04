@@ -51,7 +51,7 @@ class ApartmentController extends Controller
 
 public function show($id)
 {
-    $apartment = Apartment::find($id);
+    $apartment = Apartment::with('owner')->find($id);
 
     if (!$apartment) {
         return response()->json([
@@ -60,19 +60,24 @@ public function show($id)
         ], 404);
     }
 
-        return response()->json([
+    return response()->json([
         'status' => true,
         'data' => [
-            'id'          => $apartment->id,
-            'title'       => $apartment->title,
-            'location'    => $apartment->location,
-            'price'       => $apartment->price,
-            'description' => $apartment->description,
-            'main_image'  => $apartment->main_image,
-            'images'      => json_decode($apartment->images, true)
+            'id'            => $apartment->id,
+            'title'         => $apartment->title,
+            'price'         => $apartment->price,
+            'description'   => $apartment->description,
+            'city'          => $apartment->city,
+            'governorate'   => $apartment->governorate,
+            'number_rooms'  => $apartment->number_rooms,
+            'owner_id'      => $apartment->owner_id,
+            'owner_name'    => $apartment->owner->name ?? null,
+            'main_image'    => $apartment->main_image,
+            'images'        => json_decode($apartment->images, true),
         ]
     ]);
 }
+
 
     public function store(Request $request)
         {
