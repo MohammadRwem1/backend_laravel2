@@ -15,11 +15,7 @@ class ConversationController extends Controller
         if ($user->role !== 'renter') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
-
-        if (!($apartment->owner_id)) {
-            return response()->json(['message' => 'Apartment has no owner'], 400);
-        }
-
+        
         try {
             $conversation = Conversation::firstOrCreate(
                 [
