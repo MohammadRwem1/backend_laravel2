@@ -73,7 +73,7 @@ Route::middleware('auth:sanctum')->post('/fcm-token', function (Request $request
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/conversations/{apartment}', [ConversationController::class, 'store']);
+    Route::post('/conversations/{apartment_id}', [ConversationController::class, 'store']);
     Route::get('/conversations', [ConversationController::class, 'index']);
 
     Route::get('/conversations/{conversation}/messages', [MessageController::class, 'index']);

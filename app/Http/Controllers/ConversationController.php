@@ -8,7 +8,7 @@ use App\Models\Apartment;
 
 class ConversationController extends Controller
 {
-    public function store(Request $request, $apartmentId)
+    public function store(Request $request, Apartment $apartment)
     {
         $user = $request->user();
 
@@ -16,17 +16,23 @@ class ConversationController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $apartment = Apartment::findOrFail($apartmentId);
+        if (!$apartment->owner_id) {
+            return response()->json(['message' => 'Apartment has no owner'], 400);
+        }
 
-        $conversation = Conversation::firstOrCreate(
-            [
-                'apartment_id' => $apartment->id,
-                'renter_id' => $user->id
-            ],
-            [
-                'owner_id' => $apartment->owner_id
-            ]
-        );
+        try {
+            $conversation = Conversation::firstOrCreate(
+                [
+                    'apartment_id' => $apartment->id,
+                    'renter_id' => $user->id
+                ],
+                [
+                    'owner_id' => $apartment->owner_id
+                ]
+            );
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Conversation already exists'], 409);
+        }
 
         return response()->json($conversation);
     }
@@ -35,8 +41,10 @@ class ConversationController extends Controller
     {
         $user = $request->user();
 
-        $conversations = Conversation::where('renter_id', $user->id)
-            ->orWhere('owner_id', $user->id)
+        $conversations = Conversation::where(function($q) use ($user) {
+                $q->where('renter_id', $user->id)
+                ->orWhere('owner_id', $user->id);
+            })
             ->with('apartment')
             ->latest()
             ->get();
