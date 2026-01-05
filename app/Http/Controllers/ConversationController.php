@@ -8,7 +8,7 @@ use App\Models\Apartment;
 
 class ConversationController extends Controller
 {
-    public function store(Request $request, Apartment $apartment)
+    public function store(Request $request, $apartment_id)
     {
         $user = $request->user();
 
@@ -16,7 +16,9 @@ class ConversationController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        if (!($apartment->owner_id)) {
+        $apartment = Apartment::findOrFail($apartment_id);
+
+        if (!$apartment->owner_id) {
             return response()->json(['message' => 'Apartment has no owner'], 400);
         }
 
@@ -41,7 +43,7 @@ class ConversationController extends Controller
     {
         $user = $request->user();
 
-        $conversations = Conversation::where(function($q) use ($user) {
+        $conversations = Conversation::where(function ($q) use ($user) {
                 $q->where('renter_id', $user->id)
                 ->orWhere('owner_id', $user->id);
             })
