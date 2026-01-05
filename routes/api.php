@@ -70,4 +70,10 @@ Route::middleware('auth:sanctum')->post('/fcm-token', function (Request $request
     return response()->json(['message' => 'Token saved']);
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/conversations/{apartment}', [ConversationController::class, 'store']);
+    Route::get('/conversations', [ConversationController::class, 'index']);
 
+    Route::get('/conversations/{conversation}/messages', [MessageController::class, 'index']);
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store']);
+});
