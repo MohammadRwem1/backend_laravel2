@@ -90,7 +90,6 @@ public function show($id)
                 'price'       => 'required|numeric|min:0',
                 'main_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'images'   => 'nullable|array',
-                'images.*'     => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
             $apartment = Apartment::create([
@@ -100,8 +99,7 @@ public function show($id)
         'governorate'   => $request->governorate,
         'city'          => $request->city,
         'number_rooms'  => $request->number_rooms,
-        'owner_id'      => Auth::id(),
-        ]);
+        'owner_id' => $request->user()->id        ]);
             return response()->json($apartment, 201);
         }
 
