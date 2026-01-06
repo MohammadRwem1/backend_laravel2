@@ -9,6 +9,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\API\OTPController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -79,3 +81,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/conversations/{conversation}/messages', [MessageController::class, 'index']);
     Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store']);
 });
+
+Route::post('/send-otp', [OTPController::class, 'sendOtp']);
+Route::post('/verify-otp', [OTPController::class, 'verifyOtp']);

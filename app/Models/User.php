@@ -7,10 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\OneTimePasswords\OneTimePassword;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public function sendOneTimePassword()
+    {
+        $otp = OneTimePassword::create($this, 6, 300);
+        $this->notify(new \App\Notifications\SendOtpNotification($otp->token));
+        return $otp->token;
+    }
+
+    public function attemptLoginUsingOneTimePassword($otp)
+    {
+        return OneTimePassword::consume($this, $otp);
+    }
 
     /**
      * The attributes that are mass assignable.
