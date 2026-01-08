@@ -23,6 +23,12 @@ return new class extends Migration
             $table->date('birth_date');
             $table->string('id_image')->nullable();
             $table->string('profile_image')->nullable();
+             $table->enum('status', [
+                'pending',
+                'approved',
+                'rejected',
+                'cancelled'
+            ])->default('pending');
             $table->rememberToken();
             $table->timestamps();
         });

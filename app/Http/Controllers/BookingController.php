@@ -6,9 +6,17 @@ use App\Models\Booking;
 use App\Models\Apartment;
 use Illuminate\Http\Request;
 use App\Notifications\BookingStatusNotification;
-
+use App\Services\FcmService;
+ 
 class BookingController extends Controller
 {
+
+
+
+
+
+
+
     public function store(Request $request, $apartmentId)
     {
         $user = $request->user();
@@ -255,4 +263,93 @@ class BookingController extends Controller
         'data' => $booking
     ]);
     }
+
+
+
+
+    public function saveUserToken(Request $request)
+{
+    $request->validate([
+        'fcm_token' => 'required|string',
+    ]);
+
+    $user = auth()->user();
+
+    $user->fcmTokens()->updateOrCreate(
+        ['fcm_token' => $request->fcm_token],
+        ['user_id'   => $user->id]
+    );
+
+    return response()->json([
+        'message' => 'User token saved successfully'
+    ]);
+}
+
+
+public function updateeBooking(Request $request, $id, FcmService $fcmService)
+{
+    $user = $request->user();
+
+    $booking = Booking::with([
+        'renter.fcmTokens',
+        'apartment.owner'
+    ])->find($id);
+
+    if (!$booking) {
+        return response()->json(['message' => 'Booking not found.'], 404);
+    }
+
+  
+    if ($user->id !== $booking->apartment->owner_id) {
+        return response()->json([
+            'message' => 'Only the apartment owner can update booking status.'
+        ], 403);
+    }
+
+    $oldStatus = $booking->status;
+
+   
+    $validated = $request->validate([
+        'status' => 'required|in:pending,approved,rejected,cancelled',
+    ]);
+
+    
+    $booking->update([
+        'status' => $validated['status'],
+    ]);
+
+   
+   $statusMessages = [
+    'pending'   => 'Booking request has been sent and is pending',
+    'approved'  => 'Booking request has been approved',
+    'rejected'  => 'Booking request has been rejected',
+    'cancelled' => 'Booking has been cancelled',
+];
+
+
+    if ($oldStatus !== $booking->status && $booking->status !== 'pending') {
+
+      
+        $receiver = $booking->renter;
+
+        foreach ($receiver->fcmTokens as $token) {
+            $fcmService->sendNotification(
+                $token->fcm_token,
+                 'Update Booking Status',
+                $statusMessages[$booking->status],
+                [
+                    'booking_id' => $booking->id,
+                    'status'     => $booking->status,
+                ]
+            );
+        }
+    }
+
+    return response()->json([
+        'message' => 'Booking status updated successfully.',
+        'data'    => $booking,
+    ]);
+}
+
+
 }

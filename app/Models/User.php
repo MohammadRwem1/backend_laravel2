@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\OneTimePasswords\OneTimePassword;
-
+use App\Models\FcmToken;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -69,5 +69,10 @@ class User extends Authenticatable
     return $this->hasMany(Booking::class);  
     }
 
+
+public function fcmTokens()
+{
+    return $this->hasMany(FcmToken::class);
+}
 
 }
