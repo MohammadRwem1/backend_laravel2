@@ -22,6 +22,7 @@ use App\Http\Controllers\API\OTPController;
 |
 */
 
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -84,3 +85,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/send-otp', [OTPController::class, 'sendOtp']);
 Route::post('/verify-otp', [OTPController::class, 'verifyOtp']);
+
+
+
+Route::middleware('auth:sanctum')->put( '/bookings/{id}/status',[BookingController::class, 'updateeBooking']
+);
+
+
+Route::middleware('auth:sanctum')->post('/save-fcm-token',[BookingController::class, 'saveUserToken']
+);
+
+
