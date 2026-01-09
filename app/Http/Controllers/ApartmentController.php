@@ -88,18 +88,37 @@ public function show($id)
                 'number_rooms'=> 'required|numeric|between:1,5',
                 'description' => 'nullable|string',
                 'price'       => 'required|numeric|min:0',
-                'main_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'main_image'  => 'nullable|file',
                 'images'   => 'nullable|array',
             ]);
 
-            $apartment = Apartment::create([
+            $mainImagePath = null;
+
+            if ($request->hasFile('main_image')) {
+                $mainImagePath = $request->file('main_image')->store('apartments/main', 'public');
+            }
+
+        $apartment = Apartment::create([
         'title'         => $request->title,
         'description'   => $request->description,
         'price'         => $request->price,
         'governorate'   => $request->governorate,
         'city'          => $request->city,
         'number_rooms'  => $request->number_rooms,
-        'owner_id' => $request->user()->id        ]);
+        'owner_id'      => $request->user()->id,
+        'main_image'    => $mainImagePath,
+    ]);
+        
+
+        if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('apartments/images', 'public');
+
+            $apartment->images()->create([
+                'image' => $path
+            ]);
+        }
+    }
             return response()->json($apartment, 201);
         }
 
