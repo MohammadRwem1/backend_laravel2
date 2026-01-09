@@ -12,35 +12,43 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
 
-    private function uploadImage($file,$folder){
-        if (!$file) {
-            return null;
-        }
+    private function uploadImage($file, $folder){
+    if (!$file) {
+        return null;
+    }
 
-        $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
-            return $file->storeAs($folder, $filename, 'public');
+    $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+
+    $path = 'uploads/' . $folder . '/' . $filename;
+    $file->move(base_path($path), $filename);
+
+    return $path;
     }
 
     public function register(AuthRequest $request){
+    $idImagePath = $this->uploadImage($request->file('id_image'),'id_image');
+    $profileImagePath = $this->uploadImage($request->file('profile_image'),'profile_image');
 
-        $idImagePath=$this->uploadImage($request->file('id_image'),'id_image');
-        $profileImagePath=$this->uploadImage($request->file('profile_image'),'profile_image');
+    $role = strtolower($request->role) === 'owner' ? 'owner' : 'renter';
 
-        $role=strtolower($request->role)==='owner'?'owner':'renter';
+    $data = $request->validated();
+    $data['id_image'] = $idImagePath;
+    $data['profile_image'] = $profileImagePath;
+    $data['password'] = Hash::make($data['password']);
+    $data['role'] = $role;
+    $data['status'] = 'pending';
 
-        $data=$request->validated();
-        $data['id_image']=$idImagePath;
-        $data['profile_image']=$profileImagePath;
-        $data['password']=Hash::make($data['password']);
-        $data['role']=$role;
-        $data['status']='pending';
+    $user = User::create($data);
 
-        $user=User::create($data);
+    $user->id_image = $user->id_image ? url($user->id_image) : null;
+    $user->profile_image = $user->profile_image ? url($user->profile_image) : null;
 
-        return response()->json
-        (['message'=>'user registered successfully',
-            'user'=>$user], 200);
+    return response()->json([
+        'message' => 'User registered successfully',
+        'user' => $user
+    ], 200);
     }
+    
 
     public function login(Request $request){
 
