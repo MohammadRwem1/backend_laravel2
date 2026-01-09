@@ -119,7 +119,7 @@ public function store(Request $request)
             $image->move(base_path('uploads/apartments/images'), $filename);
 
             $apartment->images()->create([
-                'image' => 'uploads/apartments/images/'.$filename
+                'image_path' => 'uploads/apartments/images/'.$filename
             ]);
         }
     }
