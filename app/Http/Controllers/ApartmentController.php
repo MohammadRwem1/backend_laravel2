@@ -79,50 +79,54 @@ public function show($id)
 }
 
 
-    public function store(Request $request)
-        {
-            $request->validate([
-                'title'       => 'required|string|max:255',
-                'governorate' => 'required|string',
-                'city'        => 'required|string',
-                'number_rooms'=> 'required|numeric|between:1,5',
-                'description' => 'nullable|string',
-                'price'       => 'required|numeric|min:0',
-                'main_image'  => 'nullable|file',
-                'images'   => 'nullable|array',
-            ]);
-
-            $mainImagePath = null;
-
-            if ($request->hasFile('main_image')) {
-                $mainImagePath = $request->file('main_image')->move(
-                public_path('uploads/apartments'),
-                time().'_'.$request->file('main_image')->getClientOriginalName());
-            }
-
-        $apartment = Apartment::create([
-        'title'         => $request->title,
-        'description'   => $request->description,
-        'price'         => $request->price,
-        'governorate'   => $request->governorate,
-        'city'          => $request->city,
-        'number_rooms'  => $request->number_rooms,
-        'owner_id'      => $request->user()->id,
-        'main_image'    => $mainImagePath,
+public function store(Request $request)
+    {
+    $request->validate([
+        'title'        => 'required|string|max:255',
+        'governorate'  => 'required|string',
+        'city'         => 'required|string',
+        'number_rooms' => 'required|numeric|between:1,5',
+        'description'  => 'nullable|string',
+        'price'        => 'required|numeric|min:0',
+        'main_image'   => 'nullable|file',
+        'images'       => 'nullable|array',
+        'images.*'     => 'file',
     ]);
-        
 
-        if ($request->hasFile('images')) {
+    $mainPath = null;
+
+    if ($request->hasFile('main_image')) {
+        $file = $request->file('main_image');
+        $filename = uniqid().'.'.$file->getClientOriginalExtension();
+        $file->move(public_path('uploads/apartments/main'), $filename);
+        $mainPath = 'uploads/apartments/main/'.$filename;
+    }
+
+    $apartment = Apartment::create([
+        'title'        => $request->title,
+        'description'  => $request->description,
+        'price'        => $request->price,
+        'governorate'  => $request->governorate,
+        'city'         => $request->city,
+        'number_rooms' => $request->number_rooms,
+        'owner_id'     => $request->user()->id,
+        'main_image'   => $mainPath,
+    ]);
+
+    if ($request->hasFile('images')) {
         foreach ($request->file('images') as $image) {
-            $path = $image->store('apartments/images', 'public');
+            $filename = uniqid().'.'.$image->getClientOriginalExtension();
+            $image->move(public_path('uploads/apartments/images'), $filename);
 
             $apartment->images()->create([
-                'image' => $path
+                'image' => 'uploads/apartments/images/'.$filename
             ]);
         }
     }
-            return response()->json($apartment, 201);
-        }
+
+    return response()->json($apartment->load('images'), 201);
+    }
+
 
     public function update(Request $request, Apartment $apartment)
     {
