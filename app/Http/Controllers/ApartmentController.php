@@ -42,6 +42,12 @@ class ApartmentController extends Controller
                 'main_image'
             )->get();
 
+            $apartments->transform(function($apartment){
+            if ($apartment->main_image) {
+            $apartment->main_image = url($apartment->main_image);
+        }
+        return $apartment;
+    });
             return response()->json([
                 'status' => true,
                 'data' => $apartments
@@ -49,8 +55,8 @@ class ApartmentController extends Controller
         }
 
 
-public function show($id)
-{
+        public function show($id)
+        {
     $apartment = Apartment::with('owner')->find($id);
 
     if (!$apartment) {
@@ -60,6 +66,11 @@ public function show($id)
         ], 404);
     }
 
+    $images = $apartment->images->map(function($img){
+        $img->image_path = url($img->image_path);
+        return $img;
+    });
+    
     return response()->json([
         'status' => true,
         'data' => [
@@ -76,7 +87,7 @@ public function show($id)
             'images'        => json_decode($apartment->images, true),
         ]
     ]);
-}
+        }
 
 
 public function store(Request $request)
