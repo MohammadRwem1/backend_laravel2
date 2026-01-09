@@ -8,7 +8,7 @@ class ApartmentImage extends Model
 {
     protected $fillable = [
         'apartment_id',
-        'image',
+        'image_path',
     ];
 
     public function apartment()

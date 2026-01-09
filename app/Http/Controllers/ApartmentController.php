@@ -56,8 +56,8 @@ class ApartmentController extends Controller
 
 
         public function show($id)
-        {
-    $apartment = Apartment::with('owner')->find($id);
+{
+    $apartment = Apartment::with(['owner', 'images'])->find($id);
 
     if (!$apartment) {
         return response()->json([
@@ -66,11 +66,14 @@ class ApartmentController extends Controller
         ], 404);
     }
 
+    // روابط كاملة لكل الصور
     $images = $apartment->images->map(function($img){
-        $img->image_path = url($img->image_path);
-        return $img;
+        return [
+            'id' => $img->id,
+            'image_path' => url($img->image_path),
+        ];
     });
-    
+
     return response()->json([
         'status' => true,
         'data' => [
@@ -83,11 +86,12 @@ class ApartmentController extends Controller
             'number_rooms'  => $apartment->number_rooms,
             'owner_id'      => $apartment->owner_id,
             'owner_name'    => $apartment->owner->name ?? null,
-            'main_image'    => $apartment->main_image,
-            'images'        => json_decode($apartment->images, true),
+            'main_image'    => $apartment->main_image ? url($apartment->main_image) : null,
+            'images'        => $images,
         ]
     ]);
-        }
+}
+
 
 
 public function store(Request $request)
@@ -135,8 +139,18 @@ public function store(Request $request)
         }
     }
 
-    return response()->json($apartment->load('images'), 201);
-    }
+    $apartment->load('images');
+
+$apartment->main_image = $apartment->main_image ? url($apartment->main_image) : null;
+
+$apartment->images->transform(function($img) {
+    $img->image_path = url($img->image_path);
+    return $img;
+});
+
+return response()->json($apartment, 201);
+
+}
 
 
     public function update(Request $request, Apartment $apartment)
