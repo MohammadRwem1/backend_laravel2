@@ -66,13 +66,12 @@ class ApartmentController extends Controller
         ], 404);
     }
 
-    // روابط كاملة لكل الصور
-    $images = $apartment->images->map(function($img){
+    $images = $apartment->images ? $apartment->images->map(function($img){
         return [
             'id' => $img->id,
-            'image_path' => url($img->image_path),
+            'image_path' => $img->image_path ? url($img->image_path) : null,
         ];
-    });
+    }) : [];
 
     return response()->json([
         'status' => true,
