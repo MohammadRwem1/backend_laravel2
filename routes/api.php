@@ -84,3 +84,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/send-otp', [OTPController::class, 'sendOtp']);
 Route::post('/verify-otp', [OTPController::class, 'verifyOtp']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile/image', [AuthController::class, 'profileImage']);
+    Route::get('/profile/id-image', [AuthController::class, 'idImage']);
+});

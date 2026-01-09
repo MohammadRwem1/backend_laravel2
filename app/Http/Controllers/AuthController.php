@@ -82,4 +82,44 @@ class AuthController extends Controller
         
         return response()->json(['message'=>'logged out successfully'], 200);
     }
+
+    public function profile(Request $request)
+{
+    $user = $request->user();
+
+    return response()->json([
+        'id' => $user->id,
+        'name' => $user->name,
+        'phone' => $user->phone,
+        'role' => $user->role,
+        'status' => $user->status,
+        'profile_image' => $user->profile_image
+            ? url('/api/profile/image')
+            : null,
+        'id_image' => $user->id_image
+            ? url('/api/profile/id-image')
+            : null,
+    ]);
+}
+public function profileImage(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user->profile_image || !file_exists(base_path($user->profile_image))) {
+        abort(404);
+    }
+
+    return response()->file(base_path($user->profile_image));
+}
+public function idImage(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user->id_image || !file_exists(base_path($user->id_image))) {
+        abort(404);
+    }
+
+    return response()->file(base_path($user->id_image));
+}
+
 }
