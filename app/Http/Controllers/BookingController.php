@@ -53,23 +53,36 @@ class BookingController extends Controller
     }
 
     public function myBookings(Request $request)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-        if ($user->role !== 'renter') {
-            return response()->json(['message' => 'Only renters can view their bookings.'], 403);
-        }
-
-        $bookings = Booking::with('apartment')
-            ->where('renter_id', $user->id)
-            ->orderByDesc('start_date')
-            ->get();
-
-        return response()->json([
-            'message' => 'Your bookings list.',
-            'data' => $bookings
-        ]);
+    if ($user->role !== 'renter') {
+        return response()->json(['message' => 'Only renters can view their bookings.'], 403);
     }
+
+    $bookings = Booking::with('apartment')
+        ->where('renter_id', $user->id)
+        ->orderByDesc('start_date')
+        ->get();
+
+    $today = Carbon::today();
+
+    $bookings->transform(function ($booking) use ($today) {
+        if ($booking->end_date < $today) {
+            $booking->status = 'ended';
+        } elseif ($booking->start_date > $today) {
+            $booking->status = 'upcoming';
+        } else {
+            $booking->status = 'ongoing';
+        }
+        return $booking;
+    });
+
+    return response()->json([
+        'message' => 'Your bookings list.',
+        'data' => $bookings
+    ]);
+}
 
     public function ownerPending(Request $request)
     {
