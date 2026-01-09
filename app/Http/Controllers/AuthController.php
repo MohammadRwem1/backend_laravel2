@@ -20,9 +20,9 @@ class AuthController extends Controller
     $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
 
     $path = 'uploads/' . $folder . '/' . $filename;
-    $file->move(base_path($path), $filename);
+    $file->move(base_path('uploads/' . $folder), $filename);
 
-    return $path;
+    return $path; 
     }
 
     public function register(AuthRequest $request){
