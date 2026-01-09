@@ -95,7 +95,9 @@ public function show($id)
             $mainImagePath = null;
 
             if ($request->hasFile('main_image')) {
-                $mainImagePath = $request->file('main_image')->store('apartments/main', 'public');
+                $mainImagePath = $request->file('main_image')->move(
+                public_path('uploads/apartments'),
+                time().'_'.$request->file('main_image')->getClientOriginalName());
             }
 
         $apartment = Apartment::create([
