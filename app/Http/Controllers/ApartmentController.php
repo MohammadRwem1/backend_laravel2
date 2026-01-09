@@ -98,7 +98,7 @@ public function store(Request $request)
     if ($request->hasFile('main_image')) {
         $file = $request->file('main_image');
         $filename = uniqid().'.'.$file->getClientOriginalExtension();
-        $file->move(public_path('uploads/apartments/main'), $filename);
+        $file->move(base_path('uploads/apartments/main'), $filename);
         $mainPath = 'uploads/apartments/main/'.$filename;
     }
 
