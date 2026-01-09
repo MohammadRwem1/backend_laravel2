@@ -9,17 +9,21 @@ class Apartment extends Model
 {
     use HasFactory;
     
-    protected $fillable=[
+    protected $fillable = [
         'owner_id',
-        'title' ,    
+        'title',
         'governorate',
-        'city'   ,     
+        'city',
         'number_rooms',
-        'description' ,
-        'price'     ,  
-        'main_image' , 
-        'images.*' ,   
+        'description',
+        'price',
+        'main_image',
     ];
+
+    public function images()
+    {
+        return $this->hasMany(ApartmentImage::class);
+    }
 
     public function owner(){
         return $this->belongsTo(User::class,'owner_id','id');
