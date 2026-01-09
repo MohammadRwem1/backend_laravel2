@@ -116,7 +116,7 @@ public function store(Request $request)
     if ($request->hasFile('images')) {
         foreach ($request->file('images') as $image) {
             $filename = uniqid().'.'.$image->getClientOriginalExtension();
-            $image->move(public_path('uploads/apartments/images'), $filename);
+            $image->move(base_path('uploads/apartments/images'), $filename);
 
             $apartment->images()->create([
                 'image' => 'uploads/apartments/images/'.$filename
