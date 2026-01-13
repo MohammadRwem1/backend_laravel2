@@ -9,7 +9,6 @@ use App\Notifications\BookingStatusNotification;
 
 class BookingController extends Controller
 {
-    /* ================= Create Booking ================= */
 
     public function store(Request $request, $apartmentId)
     {
@@ -54,7 +53,6 @@ class BookingController extends Controller
         ], 201);
     }
 
-    /* ================= Renter Bookings ================= */
 
     public function myBookings(Request $request)
     {
@@ -69,14 +67,12 @@ class BookingController extends Controller
             ->orderByDesc('start_date')
             ->get();
 
-        // ❗ لا منطق هنا – booking_state يأتي تلقائيًا من المودل
         return response()->json([
             'message' => 'Your bookings list.',
             'data'    => $bookings
         ]);
     }
 
-    /* ================= Owner Pending ================= */
 
     public function ownerPending(Request $request)
     {
@@ -97,7 +93,6 @@ class BookingController extends Controller
         ]);
     }
 
-    /* ================= Approve ================= */
 
     public function approve(Request $request, $id)
     {
@@ -139,7 +134,6 @@ class BookingController extends Controller
         return response()->json($booking);
     }
 
-    /* ================= Reject ================= */
 
     public function reject(Request $request, $id)
     {
@@ -166,7 +160,6 @@ class BookingController extends Controller
         ]);
     }
 
-    /* ================= Cancel ================= */
 
     public function cancel(Request $request, $id)
     {
@@ -198,7 +191,6 @@ class BookingController extends Controller
         ]);
     }
 
-    /* ================= Update Pending ================= */
 
     public function updateBooking(Request $request, $id)
     {

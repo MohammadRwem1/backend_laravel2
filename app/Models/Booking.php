@@ -53,7 +53,6 @@ class Booking extends Model
         return 'ongoing';
     }
 
-    /* ================= Relations ================= */
 
     public function renter()
     {
