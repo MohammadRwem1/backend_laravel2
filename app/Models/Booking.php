@@ -23,18 +23,21 @@ class Booking extends Model
         'end_date'   => 'date',
     ];
 
-    protected function serializeDate(\DateTimeInterface $date)
-    {
-        return $date->format('Y-m-d'); 
-    }
+    protected $appends = ['booking_state'];
 
-    public function renter()
+    public function getBookingStateAttribute()
     {
-        return $this->belongsTo(User::class, 'renter_id');
-    }
+        $today = Carbon::today();
 
-    public function apartment()
-    {
-        return $this->belongsTo(Apartment::class);
+        if ($this->end_date < $today) {
+            return 'ended';
+        }
+
+        if ($this->start_date > $today) {
+            return 'upcoming';
+        }
+
+        return 'ongoing';
     }
 }
+

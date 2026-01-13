@@ -6,6 +6,8 @@ use App\Models\Booking;
 use App\Models\Apartment;
 use Illuminate\Http\Request;
 use App\Notifications\BookingStatusNotification;
+use Carbon\Carbon;
+
 
 class BookingController extends Controller
 {
@@ -52,7 +54,7 @@ class BookingController extends Controller
         ], 201);
     }
 
-    public function myBookings(Request $request)
+public function myBookings(Request $request)
 {
     $user = $request->user();
 
@@ -68,13 +70,15 @@ class BookingController extends Controller
     $today = Carbon::today();
 
     $bookings->transform(function ($booking) use ($today) {
+
         if ($booking->end_date < $today) {
-            $booking->status = 'ended';
+            $booking->booking_state = 'ended';
         } elseif ($booking->start_date > $today) {
-            $booking->status = 'upcoming';
+            $booking->booking_state = 'upcoming';
         } else {
-            $booking->status = 'ongoing';
+            $booking->booking_state = 'ongoing';
         }
+
         return $booking;
     });
 
