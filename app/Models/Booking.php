@@ -27,17 +27,20 @@ class Booking extends Model
 
     public function getBookingStateAttribute()
     {
+        if (! $this->start_date || ! $this->end_date) {
+            return null;
+        }
+
         $today = Carbon::today();
 
-        if ($this->end_date < $today) {
+        if ($this->end_date->lt($today)) {
             return 'ended';
         }
 
-        if ($this->start_date > $today) {
+        if ($this->start_date->gt($today)) {
             return 'upcoming';
         }
 
         return 'ongoing';
     }
 }
-
