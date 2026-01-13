@@ -55,8 +55,8 @@ class ApartmentController extends Controller
         }
 
 
-        public function show($id)
-{
+    public function show($id)
+    {
     $apartment = Apartment::with(['owner', 'images'])->find($id);
 
     if (!$apartment) {
@@ -66,30 +66,30 @@ class ApartmentController extends Controller
         ], 404);
     }
 
-    $images = $apartment->images ? $apartment->images->map(function($img){
+    $images = $apartment->images->map(function($img){
         return [
             'id' => $img->id,
             'image_path' => $img->image_path ? url($img->image_path) : null,
         ];
-    }) : [];
+    });
 
     return response()->json([
         'status' => true,
         'data' => [
-            'id'            => $apartment->id,
-            'title'         => $apartment->title,
-            'price'         => $apartment->price,
-            'description'   => $apartment->description,
-            'city'          => $apartment->city,
-            'governorate'   => $apartment->governorate,
-            'number_rooms'  => $apartment->number_rooms,
-            'owner_id'      => $apartment->owner_id,
-            'owner_name'    => $apartment->owner->name ?? null,
-            'main_image'    => $apartment->main_image ? url($apartment->main_image) : null,
-            'images'        => $images,
+            'id'           => $apartment->id,
+            'title'        => $apartment->title,
+            'price'        => $apartment->price,
+            'description'  => $apartment->description,
+            'city'         => $apartment->city,
+            'governorate'  => $apartment->governorate,
+            'number_rooms' => $apartment->number_rooms,
+            'owner_id'     => $apartment->owner_id,
+            'owner_name'   => $apartment->owner->name ?? null,
+            'main_image'   => $apartment->main_image ? url($apartment->main_image) : null,
+            'images'       => $images,
         ]
     ]);
-}
+    }
 
 
 
