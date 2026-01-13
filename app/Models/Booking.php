@@ -23,13 +23,14 @@ class Booking extends Model
         'end_date'   => 'date',
     ];
 
-    // نضيف حالة زمنية محسوبة فقط (لا تُخزَّن بالجدول)
     protected $appends = ['booking_state'];
 
-    /**
-     * booking_state:
-     * ended | ongoing | upcoming
-     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d');
+    }
+
+
     public function getBookingStateAttribute()
     {
         if (empty($this->start_date) || empty($this->end_date)) {
