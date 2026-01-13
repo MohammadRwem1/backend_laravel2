@@ -71,7 +71,7 @@ class ApartmentController extends Controller
             'id' => $img->id,
             'image_path' => $img->image_path ? url($img->image_path) : null,
         ];
-    });
+    }): [];
 
     return response()->json([
         'status' => true,
