@@ -6,11 +6,11 @@ use App\Models\Booking;
 use App\Models\Apartment;
 use Illuminate\Http\Request;
 use App\Notifications\BookingStatusNotification;
-use Carbon\Carbon;
-
 
 class BookingController extends Controller
 {
+    /* ================= Create Booking ================= */
+
     public function store(Request $request, $apartmentId)
     {
         $user = $request->user();
@@ -26,7 +26,7 @@ class BookingController extends Controller
 
         $apartment = Apartment::find($apartmentId);
 
-        if (!$apartment) {
+        if (! $apartment) {
             return response()->json(['message' => 'Apartment not found.'], 404);
         }
 
@@ -50,43 +50,33 @@ class BookingController extends Controller
 
         return response()->json([
             'message' => 'Booking request submitted and waiting for owner approval.',
-            'data' => $booking
+            'data'    => $booking
         ], 201);
     }
 
-public function myBookings(Request $request)
-{
-    $user = $request->user();
+    /* ================= Renter Bookings ================= */
 
-    if ($user->role !== 'renter') {
-        return response()->json(['message' => 'Only renters can view their bookings.'], 403);
-    }
+    public function myBookings(Request $request)
+    {
+        $user = $request->user();
 
-    $bookings = Booking::with('apartment')
-        ->where('renter_id', $user->id)
-        ->orderByDesc('start_date')
-        ->get();
-
-    $today = Carbon::today();
-
-    $bookings->transform(function ($booking) use ($today) {
-
-        if ($booking->end_date < $today) {
-            $booking->booking_state = 'ended';
-        } elseif ($booking->start_date > $today) {
-            $booking->booking_state = 'upcoming';
-        } else {
-            $booking->booking_state = 'ongoing';
+        if ($user->role !== 'renter') {
+            return response()->json(['message' => 'Only renters can view their bookings.'], 403);
         }
 
-        return $booking;
-    });
+        $bookings = Booking::with('apartment')
+            ->where('renter_id', $user->id)
+            ->orderByDesc('start_date')
+            ->get();
 
-    return response()->json([
-        'message' => 'Your bookings list.',
-        'data' => $bookings
-    ]);
-}
+        // ❗ لا منطق هنا – booking_state يأتي تلقائيًا من المودل
+        return response()->json([
+            'message' => 'Your bookings list.',
+            'data'    => $bookings
+        ]);
+    }
+
+    /* ================= Owner Pending ================= */
 
     public function ownerPending(Request $request)
     {
@@ -103,72 +93,60 @@ public function myBookings(Request $request)
 
         return response()->json([
             'message' => 'Pending booking requests.',
-            'data' => $bookings
+            'data'    => $bookings
         ]);
     }
 
+    /* ================= Approve ================= */
+
     public function approve(Request $request, $id)
     {
-    $user = $request->user();
-    $booking = Booking::with('apartment')->find($id);
+        $user = $request->user();
+        $booking = Booking::with('apartment')->find($id);
 
-    if (! $booking) {
-        return response()->json(['message' => 'Booking not found'], 404);
-    }
+        if (! $booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
 
-    if ($user->role !== 'owner' || $booking->apartment->owner_id !== $user->id) {
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }
+        if ($user->role !== 'owner' || $booking->apartment->owner_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
-    $start = $booking->start_date;
-    $end   = $booking->end_date;
+        $overlap = Booking::where('apartment_id', $booking->apartment_id)
+            ->where('status', 'approved')
+            ->where('id', '!=', $booking->id)
+            ->where('start_date', '<=', $booking->end_date)
+            ->where('end_date', '>=', $booking->start_date)
+            ->exists();
 
-    $overlap = Booking::where('apartment_id', $booking->apartment_id)
-        ->where('status', 'approved')
-        ->where('id', '!=', $booking->id)
-        ->where(function ($q) use ($start, $end) {
-            $q->where('start_date', '<=', $end)
-            ->where('end_date', '>=', $start);
-        })
-        ->exists();
+        if ($overlap) {
+            return response()->json(['message' => 'Overlapping approved booking exists'], 409);
+        }
 
-    if ($overlap) {
-        return response()->json(['message' => 'Overlapping approved booking exists'], 409);
-    }
-
-    $booking->status = 'approved';
-    $booking->save();
-
-    Booking::where('apartment_id', $booking->apartment_id)
-        ->where('status', 'pending')
-        ->where('id', '!=', $booking->id)
-        ->where(function ($q) use ($start, $end) {
-            $q->where('start_date', '<=', $end)
-            ->where('end_date', '>=', $start);
-        })
-        ->update(['status' => 'rejected']);
         $booking->update(['status' => 'approved']);
 
-        $renter = $booking->renter;
+        Booking::where('apartment_id', $booking->apartment_id)
+            ->where('status', 'pending')
+            ->where('id', '!=', $booking->id)
+            ->where('start_date', '<=', $booking->end_date)
+            ->where('end_date', '>=', $booking->start_date)
+            ->update(['status' => 'rejected']);
 
-        $renter->notify(
-        new BookingStatusNotification(
-        $booking,
-        'Your booking has been approved'
-            )
+        $booking->renter->notify(
+            new BookingStatusNotification($booking, 'Your booking has been approved')
         );
 
-    return response()->json($booking);
+        return response()->json($booking);
     }
 
+    /* ================= Reject ================= */
 
     public function reject(Request $request, $id)
     {
         $user = $request->user();
-
         $booking = Booking::with('apartment')->find($id);
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found.'], 404);
         }
 
@@ -178,98 +156,89 @@ public function myBookings(Request $request)
 
         $booking->update(['status' => 'rejected']);
 
-        $renter = $booking->renter;
-
-        $renter->notify(
-        new BookingStatusNotification(
-        $booking,
-        'Your booking has been rejected'
-            )
+        $booking->renter->notify(
+            new BookingStatusNotification($booking, 'Your booking has been rejected')
         );
 
         return response()->json([
             'message' => 'Booking rejected.',
-            'data' => $booking
+            'data'    => $booking
         ]);
     }
 
+    /* ================= Cancel ================= */
+
     public function cancel(Request $request, $id)
     {
-    $user = $request->user();
+        $user = $request->user();
 
-    if ($user->role !== 'renter') {
-        return response()->json(['message' => 'Only renters can cancel bookings.'], 403);
-    }
+        if ($user->role !== 'renter') {
+            return response()->json(['message' => 'Only renters can cancel bookings.'], 403);
+        }
 
-    $booking = Booking::with('apartment.owner')->find($id);
+        $booking = Booking::with('apartment.owner')->find($id);
 
-    if (!$booking || $booking->renter_id !== $user->id) {
-        return response()->json(['message' => 'Booking not found or unauthorized.'], 404);
-    }
+        if (! $booking || $booking->renter_id !== $user->id) {
+            return response()->json(['message' => 'Booking not found or unauthorized.'], 404);
+        }
 
-    if ($booking->status === 'approved' && $booking->start_date <= now()->toDateString()) {
-        return response()->json(['message' => 'Cannot cancel an active booking.'], 409);
-    }
+        if ($booking->status === 'approved' && $booking->start_date <= now()->toDateString()) {
+            return response()->json(['message' => 'Cannot cancel an active booking.'], 409);
+        }
 
-    $booking->update(['status' => 'cancelled']);
+        $booking->update(['status' => 'cancelled']);
 
-    $owner = $booking->apartment->owner;
-
-    if ($owner) {
-        $owner->notify(
-            new BookingStatusNotification(
-                $booking,
-                'The renter cancelled the booking'
-            )
+        $booking->apartment->owner?->notify(
+            new BookingStatusNotification($booking, 'The renter cancelled the booking')
         );
+
+        return response()->json([
+            'message' => 'Booking cancelled successfully.',
+            'data'    => $booking
+        ]);
     }
 
-    return response()->json([
-        'message' => 'Booking cancelled successfully.',
-        'data' => $booking
-    ]);
-    }
-
+    /* ================= Update Pending ================= */
 
     public function updateBooking(Request $request, $id)
     {
-    $user = $request->user();
+        $user = $request->user();
 
-    if ($user->role !== 'renter') {
-        return response()->json(['message' => 'Only renters can update bookings.'], 403);
-    }
+        if ($user->role !== 'renter') {
+            return response()->json(['message' => 'Only renters can update bookings.'], 403);
+        }
 
-    $booking = Booking::find($id);
+        $booking = Booking::find($id);
 
-    if (!$booking || $booking->renter_id !== $user->id) {
-        return response()->json(['message' => 'Booking not found or unauthorized.'], 404);
-    }
+        if (! $booking || $booking->renter_id !== $user->id) {
+            return response()->json(['message' => 'Booking not found or unauthorized.'], 404);
+        }
 
-    if ($booking->status !== 'pending') {
-        return response()->json(['message' => 'Only pending bookings can be updated.'], 409);
-    }
+        if ($booking->status !== 'pending') {
+            return response()->json(['message' => 'Only pending bookings can be updated.'], 409);
+        }
 
-    $validated = $request->validate([
-        'start_date' => 'required|date|after_or_equal:today',
-        'end_date'   => 'required|date|after:start_date',
-    ]);
+        $validated = $request->validate([
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date'   => 'required|date|after:start_date',
+        ]);
 
-    $hasOverlap = Booking::where('apartment_id', $booking->apartment_id)
-        ->where('status', 'approved')
-        ->where('id', '!=', $booking->id)
-        ->where('start_date', '<', $validated['end_date'])
-        ->where('end_date', '>', $validated['start_date'])
-        ->exists();
+        $hasOverlap = Booking::where('apartment_id', $booking->apartment_id)
+            ->where('status', 'approved')
+            ->where('id', '!=', $booking->id)
+            ->where('start_date', '<', $validated['end_date'])
+            ->where('end_date', '>', $validated['start_date'])
+            ->exists();
 
-    if ($hasOverlap) {
-        return response()->json(['message' => 'Updated dates conflict with an approved booking.'], 409);
-    }
+        if ($hasOverlap) {
+            return response()->json(['message' => 'Updated dates conflict with an approved booking.'], 409);
+        }
 
-    $booking->update($validated);
+        $booking->update($validated);
 
-    return response()->json([
-        'message' => 'Booking updated successfully.',
-        'data' => $booking
-    ]);
+        return response()->json([
+            'message' => 'Booking updated successfully.',
+            'data'    => $booking
+        ]);
     }
 }

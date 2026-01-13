@@ -23,24 +23,44 @@ class Booking extends Model
         'end_date'   => 'date',
     ];
 
+    // نضيف حالة زمنية محسوبة فقط (لا تُخزَّن بالجدول)
     protected $appends = ['booking_state'];
 
+    /**
+     * booking_state:
+     * ended | ongoing | upcoming
+     */
     public function getBookingStateAttribute()
     {
-        if (! $this->start_date || ! $this->end_date) {
+        if (empty($this->start_date) || empty($this->end_date)) {
             return null;
         }
 
         $today = Carbon::today();
 
-        if ($this->end_date->lt($today)) {
+        $start = Carbon::parse($this->start_date)->startOfDay();
+        $end   = Carbon::parse($this->end_date)->endOfDay();
+
+        if ($end->lt($today)) {
             return 'ended';
         }
 
-        if ($this->start_date->gt($today)) {
+        if ($start->gt($today)) {
             return 'upcoming';
         }
 
         return 'ongoing';
+    }
+
+    /* ================= Relations ================= */
+
+    public function renter()
+    {
+        return $this->belongsTo(User::class, 'renter_id');
+    }
+
+    public function apartment()
+    {
+        return $this->belongsTo(Apartment::class);
     }
 }
