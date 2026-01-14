@@ -42,7 +42,6 @@ class ApartmentController extends Controller
             'main_image'
         )->get();
 
-        // تعديل روابط الصور
         $apartments->transform(function ($apartment) {
             $apartment->main_image = $apartment->main_image ? url($apartment->main_image) : null;
             return $apartment;
@@ -54,7 +53,6 @@ class ApartmentController extends Controller
         ]);
     }
 
-    // عرض تفاصيل شقة واحدة
     public function show($id)
     {
         $apartment = Apartment::with(['owner', 'images'])->find($id);
@@ -66,7 +64,6 @@ class ApartmentController extends Controller
             ], 404);
         }
 
-        // صور متعددة، آمنة لو كانت فاضية
         $images = $apartment->images->map(function ($img) {
             return [
                 'id' => $img->id,
@@ -92,7 +89,6 @@ class ApartmentController extends Controller
         ]);
     }
 
-    // إنشاء شقة جديدة مع الصور
     public function store(Request $request)
     {
         $request->validate([
@@ -112,7 +108,7 @@ class ApartmentController extends Controller
         if ($request->hasFile('main_image')) {
             $file = $request->file('main_image');
             $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/apartments/main'), $filename);
+            $file->move(base_path('uploads/apartments/main'), $filename);
             $mainPath = 'uploads/apartments/main/' . $filename;
         }
 
@@ -127,11 +123,10 @@ class ApartmentController extends Controller
             'main_image'   => $mainPath,
         ]);
 
-        // حفظ الصور المتعددة
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->move(public_path('uploads/apartments/images'), $filename);
+                $image->move(base_path('uploads/apartments/images'), $filename);
 
                 $apartment->images()->create([
                     'image_path' => 'uploads/apartments/images/' . $filename
@@ -139,7 +134,6 @@ class ApartmentController extends Controller
             }
         }
 
-        // تحميل الصور والعرض كرابط URL
         $apartment->load('images');
         $apartment->main_image = $apartment->main_image ? url($apartment->main_image) : null;
         $apartment->images->transform(function ($img) {
@@ -150,7 +144,6 @@ class ApartmentController extends Controller
         return response()->json($apartment, 201);
     }
 
-    // تحديث بيانات الشقة
     public function update(Request $request, Apartment $apartment)
     {
         $this->authorize('update', $apartment);
@@ -166,7 +159,6 @@ class ApartmentController extends Controller
         return response()->json($apartment, 200);
     }
 
-    // حذف الشقة
     public function destroy(Apartment $apartment)
     {
         $this->authorize('delete', $apartment);
